@@ -44,18 +44,96 @@ Hash verification ensures that only the rightful owner of the private key corres
 
 # Assignment B
 
-Implement a Hashed Time-Lock Contract for atomic swap between Alice and Bob:
+### Implement a Hashed Time-Lock Contract for atomic swap between Alice and Bob:
 
-Alice can claim with secret preimage within 21 minutes
+Alice can claim with secret preimage within 21 minutes. Bob gets refund after 21 minutes
 
-Bob gets refund after 21 minutes
+## Tasks:
 
-Tasks:
+### a) Complete the HTLC script
 
-Complete the HTLC script
+*Solution overview*:
 
-Create claiming transaction script
+- Generate wallet key pairs for Alice & Bob
+- Create a secret and compute its SHA256 hash
+- Build a HTLC script:
+  - Alice can claim funds using the secret before timeout
+  - Bob can refund after timeout
+- Produce a P2WSH address to send funds to
 
-Create refund transaction script
+**See:** [HtlcScript.js](./HtlcScript.js)
 
-Test with sample hash and timeout
+
+### b) Create claiming transaction script
+
+*Solution overview*:
+
+- Build a transaction for Alice to claim the HTLC using the secret preimage
+- Unlocks the HTLC using the OP_IF branch
+- Prints the raw transaction hex
+
+[See: Claim.js](./Claim.js)
+
+
+### c) Create refund transaction script
+
+*Solution overview*:
+
+- Build a transaction for Bob to refund the HTLC after timeout
+
+- Unlocks the HTLC using the OP_ELSE branch
+
+- Prints the raw transaction hex
+
+[See Refund.js](./Refund.js)
+
+
+### d) Test with sample hash and timeout
+
+#### i) Verify the HTLC works for both Alice (claim) and Bob (refund)
+
+**Example Usage:**
+
+```bash
+cd scripts
+node HtlcScript.js
+```
+
+**Expected output:**
+```
+Alice's Public Key: 02eac8d31f48bb7042979bb39acc245eff4f1c4ec00461e7af300f878a80c220ff
+Bob's Public Key: 02905ecbe3bf88818bf073700c6c80231af8ec56bcd31fd5df8f6917b6918ba569
+
+✅ HTLC Redeem Script:
+ 63aa20ca246c64be7e0c26e2f21c853aeb601c7aa5bd120cc39fc05360adc8081425f4882102eac8d31f48bb7042979bb39acc245eff4f1c4ec00461e7af300f878a80c220ff6702c800b1752102905ecbe3bf88818bf073700c6c80231af8ec56bcd31fd5df8f6917b6918ba56968ac
+
+✅The HTLC Address(P2WSH) is: bc1qt4py9e8dg05lwqxqms7tm2rg5ca5mkx8lfnf0d56xhtqspd556ysjzfeux
+```
+
+#### ii) Test Alice’s Claim (before timeout)
+
+**Example Usage:**
+
+```bash
+node Claim.js
+```
+
+**Expected output:**
+```
+✅ Alice's claiming transaction hex:
+ 01000000000101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0000000000fdffffff01b88201000000000017a9144b07651e30ae432a486a1461b31477cc755c0dbb8700000000
+```
+
+#### iii) Test Bob’s Refund (after timeout)
+
+**Example Usage:**
+
+```bash
+node Refund.js
+```
+
+**Expected output:**
+```
+ ✅ Bob's refund transaction hex:
+ 01000000000101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0000000000fdffffff01b88201000000000017a91438d07fc92a4a302ef12596affef54bc1759a3e318700000000
+```
